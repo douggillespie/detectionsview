@@ -3,6 +3,8 @@ package detectionview.swing;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -10,6 +12,8 @@ import javax.swing.JPopupMenu;
 import PamguardMVC.PamDataUnit;
 import clipgenerator.ClipDataUnit;
 import clipgenerator.clipDisplay.ClipDisplayDecorations;
+import clipgenerator.clipDisplay.ClipDisplayMarker;
+import clipgenerator.clipDisplay.ClipDisplayPanel;
 import clipgenerator.clipDisplay.ClipDisplayUnit;
 import detectionview.DVControl;
 import detectionview.annotate.DVAnnotationWrapper;
@@ -42,18 +46,34 @@ public class DVClipDecorations extends ClipDisplayDecorations {
 			}
 		});
 		menu.add(menuItem);
-		
-		
-		
+
 		DVAnnotationWrapper anHand = dvControl.getDvProcess().getAnnotationHandler();
-		if (anHand != null && trigData != null) {
-			JMenuItem moreMenu = anHand.createAnnotationEditMenu(trigData);
-			if (moreMenu != null) {
-				menu.add(moreMenu);
+		
+		ClipDisplayMarker marker = this.getClipDisplayUnit().getClipDisplayPanel().getClipDisplayMarker();
+		// work ou twhich units are highlighted 
+		ClipDisplayPanel clipPanel = this.getClipDisplayUnit().getClipDisplayPanel();
+		ArrayList<ClipDisplayUnit> highlighted = clipPanel.getHighlightedUnits();
+		if (highlighted.size() > 1) {
+		PamDataUnit[] units = new PamDataUnit[highlighted.size()];
+		for (int i = 0; i < units.length; i++) {
+			units[i] = highlighted.get(i).getTriggerDataUnit();
+		}
+		List<JMenuItem> manyMenu = anHand.getAnnotationMenuItems(null, null, units);
+		if (manyMenu != null) {
+			for (int i = 0; i < manyMenu.size(); i++) {
+				menu.add(manyMenu.get(i));
 			}
 		}
-	
-		
+		}
+		else {
+			if (anHand != null && trigData != null) {
+				JMenuItem moreMenu = anHand.createAnnotationEditMenu(trigData);
+				if (moreMenu != null) {
+					menu.add(moreMenu);
+				}
+			}
+		}
+				
 		return menu;
 	}
 
