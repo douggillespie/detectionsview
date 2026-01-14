@@ -15,6 +15,10 @@ public class DVParameters implements Cloneable, Serializable {
 	public double preSeconds = 1;
 	
 	public double postSeconds = 1;
+	
+	public double minClipLength = 0;
+	
+	public double maxClipLength = 60.;
 
 	@Override
 	public DVParameters clone() {

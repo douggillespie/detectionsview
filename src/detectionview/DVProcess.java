@@ -152,12 +152,16 @@ public class DVProcess extends PamguardMVC.PamProcess {
 
 	@Override
 	public void setSampleRate(float sampleRate, boolean notify) {
+
 		if (inputRawData != null) {
 			super.setSampleRate(inputRawData.getSampleRate(), false);
 		}
 		else {
 			super.setSampleRate(sampleRate, notify);
-		}
+		}		
+//		if (getSampleRate() == 9600) {
+//			System.out.println("DV Sample rate setting to " + getSampleRate());
+//		}
 	}
 
 	@Override
@@ -187,6 +191,13 @@ public class DVProcess extends PamguardMVC.PamProcess {
 			}
 		}
 		
+	}
+
+	@Override
+	public void prepareProcess() {
+		// TODO Auto-generated method stub
+//		super.prepareProcess();
+		// don't call this or it sets the parent samplerat to the detection sample rate. 
 	}
 	
 	

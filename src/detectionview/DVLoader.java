@@ -134,6 +134,16 @@ public class DVLoader {
 		float fs = raw.getSampleRate();
 		long t1 = aData.getTimeMilliseconds() - (long) (params.preSeconds * 1000.);
 		long t2 = aData.getEndTimeInMilliseconds() + (long) (params.postSeconds * 1000.);
+		if (t2-t1 < params.minClipLength*1000) {
+			long meanT = (t2+t1)/2;
+			t1 = (long) (meanT-params.minClipLength*500);
+			t2 = (long) (meanT+params.minClipLength*500);
+		}
+		if (params.maxClipLength > params.minClipLength && t2-t1 > params.maxClipLength*1000) {
+			long meanT = (t2+t1)/2;
+			t1 = (long) (meanT-params.maxClipLength*500);
+			t2 = (long) (meanT+params.maxClipLength*500);
+		}
 //		raw.loadViewerData(t1, t2, null);
 		double[][] rawData = null;
 		try {

@@ -29,19 +29,19 @@ import detectionview.DVControl;
 import detectionview.DVParameters;
 
 public class DVDialog extends PamDialog {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private DVParameters dvParameters;
-	
+
 	private DVControl dvControl;
-	
+
 	private static DVDialog singleinstance;
-	
+
 	private JCheckBox useDefault;
 	private SourcePanel detectorSource, rawSource;
-	private JTextField preWindow, postWindow;
-	private JLabel preSamples, postSamples;
+	private JTextField preWindow, postWindow, minLength, maxLength;
+	private JLabel preSamples, postSamples, minSamples, maxSamples;
 
 	private DVDialog(DVControl dvControl) {
 		super(dvControl.getGuiFrame(), dvControl.getUnitName() + " settings", false);
@@ -55,7 +55,7 @@ public class DVDialog extends PamDialog {
 		sSub.add(new WestAlignedPanel(useDefault));
 		sSub.add(rawSource.getPanel());
 		sSub.setBorder(new TitledBorder("Raw data source"));
-		
+
 		JPanel winPanel = new JPanel(new GridBagLayout());
 		winPanel.setBorder(new TitledBorder("Window parameters"));
 		GridBagConstraints c = new PamGridBagContraints();
@@ -71,12 +71,28 @@ public class DVDialog extends PamDialog {
 		winPanel.add(postWindow = new JTextField(4), c);
 		c.gridx++;
 		winPanel.add(postSamples = new JLabel(" s = "), c);
-		
-		
+
+		c.gridx = 0;
+		c.gridy++;
+		winPanel.add(new JLabel("Minimum length ", JLabel.RIGHT), c);
+		c.gridx++;
+		winPanel.add(minLength = new JTextField(4), c);
+		c.gridx++;
+		winPanel.add(minSamples = new JLabel(" s = "), c);
+
+		c.gridx = 0;
+		c.gridy++;
+		winPanel.add(new JLabel("Post sample ", JLabel.RIGHT), c);
+		c.gridx++;
+		winPanel.add(maxLength = new JTextField(4), c);
+		c.gridx++;
+		winPanel.add(maxSamples = new JLabel(" s = "), c);
+
+
 		mainPanel.add(detectorSource.getPanel());
 		mainPanel.add(sSub);
 		mainPanel.add(new PamAlignmentPanel(winPanel, BorderLayout.WEST, true));
-		
+
 		useDefault.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -88,9 +104,21 @@ public class DVDialog extends PamDialog {
 			public void keyTyped(KeyEvent e) {
 				setSampleWindows();
 			}
-			
+
 		});
 		postWindow.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				setSampleWindows();
+			}
+		});
+		minLength.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				setSampleWindows();
+			}
+		});
+		maxLength.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyTyped(KeyEvent e) {
 				setSampleWindows();
@@ -108,10 +136,22 @@ public class DVDialog extends PamDialog {
 				setSampleWindows();				
 			}
 		});
-		
+		minLength.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setSampleWindows();				
+			}
+		});
+		maxLength.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setSampleWindows();				
+			}
+		});
+
 		setDialogComponent(mainPanel);
 	}
-	
+
 	protected void useDefaultPressed() {
 		boolean useDef = useDefault.isSelected();
 		if (useDef) {
@@ -130,16 +170,16 @@ public class DVDialog extends PamDialog {
 	 */
 	private void findDefaultSource() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public static DVParameters showDialog(DVControl dvControl) {
-//		if (singleinstance == null || singleinstance.dvControl != dvControl) {
-			singleinstance = new DVDialog(dvControl); 
-//		}
+		//		if (singleinstance == null || singleinstance.dvControl != dvControl) {
+		singleinstance = new DVDialog(dvControl); 
+		//		}
 		singleinstance.setParams(dvControl.getDvParameters());
 		singleinstance.setVisible(true);
-		
+
 		return singleinstance.dvParameters;
 	}
 
@@ -149,13 +189,15 @@ public class DVDialog extends PamDialog {
 		rawSource.setSource(dvParameters.rawDataName);
 		preWindow.setText(Double.valueOf(dvParameters.preSeconds).toString());
 		postWindow.setText(Double.valueOf(dvParameters.postSeconds).toString());
+		minLength.setText(Double.valueOf(dvParameters.minClipLength).toString());
+		maxLength.setText(Double.valueOf(dvParameters.maxClipLength).toString());
 		useDefault.setSelected(dvParameters.autoFindRaw);
-		
+
 		if (dvParameters.autoFindRaw) {
 			findDefaultSource();
 		}
 		setSampleWindows();
-		
+
 		enableControls();
 	}
 
@@ -166,46 +208,71 @@ public class DVDialog extends PamDialog {
 				setSampleWindows2();
 			}
 		});
-		
+
 	}
-		private void setSampleWindows2() {
-		if (getParams() == false) {
-			return;
-		}
+	private void setSampleWindows2() {
+		boolean pOK = getParams(false);
+		if (pOK == false) return;
 		PamDataBlock rawBlock = rawSource.getSource();
-		if (rawBlock == null) {
+		if (rawBlock == null || pOK == false) {
 			preSamples.setText(" s");
 			postSamples.setText(" s");
+			minSamples.setText(" s");
+			maxSamples.setText(" s");
 			return;
 		}
 		float fs = rawBlock.getSampleRate();
 		String fmt = "seconds = %d samples";
 		preSamples.setText(String.format(fmt, (int) (fs*dvParameters.preSeconds)));
 		postSamples.setText(String.format(fmt, (int) (fs*dvParameters.postSeconds)));
-		
+		minSamples.setText(String.format(fmt, (int) (fs*dvParameters.minClipLength)));
+		maxSamples.setText(String.format(fmt, (int) (fs*dvParameters.maxClipLength)));
+
 	}
 
 	@Override
 	public boolean getParams() {
+		return getParams(true);
+	}
+
+
+	private boolean getParams(boolean verbose) {		
 		PamDataBlock b = detectorSource.getSource();
 		if (b == null) {
-			return showWarning("no detector data selected");
+			return showWarning(verbose, "no detector data selected");
 		}
 		dvParameters.detectorName = b.getLongDataName();
 		b = rawSource.getSource();
 		if (b == null) {
-			return showWarning("Unable to find a raw data source");
+			return showWarning(verbose, "Unable to find a raw data source");
 		}
 		dvParameters.rawDataName = b.getLongDataName();
 		dvParameters.autoFindRaw = useDefault.isSelected();
 		try {
 			dvParameters.preSeconds = Double.valueOf(preWindow.getText());
 			dvParameters.postSeconds = Double.valueOf(postWindow.getText());
+			dvParameters.minClipLength = Double.valueOf(minLength.getText());
+			dvParameters.maxClipLength = Double.valueOf(maxLength.getText());
 		}
 		catch (NumberFormatException e) {
-			return showWarning("Invalid window parameter");
+			return showWarning(verbose, "Invalid window parameter");
+		}
+		if (verbose) {
+		if (dvParameters.maxClipLength < dvParameters.minClipLength || dvParameters.maxClipLength < (dvParameters.preSeconds+dvParameters.postSeconds)) {
+			double newMax = Math.max(dvParameters.minClipLength, dvParameters.preSeconds+dvParameters.postSeconds);
+			maxLength.setText(Double.valueOf(newMax).toString());
+			return showWarning(verbose, "The maximum length must be greater than the minimum length and the sum of the pre and post sample lengths");
+		}
 		}
 		return true;
+
+	}
+	
+	private boolean showWarning(boolean verbose, String warning) {
+		if (verbose == false) {
+			return false;
+		}
+		return showWarning(warning);
 	}
 
 	@Override
@@ -216,7 +283,7 @@ public class DVDialog extends PamDialog {
 	@Override
 	public void restoreDefaultSettings() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
