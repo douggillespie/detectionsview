@@ -31,7 +31,6 @@ public class DVClipDecorations extends ClipDisplayDecorations {
 
 	@Override
 	public JPopupMenu addDisplayMenuItems(JPopupMenu basicMenu) {
-		
 
 		ClipDataUnit clipDataUnit = getClipDisplayUnit().getClipDataUnit();
 		trigData = getClipDisplayUnit().getTriggerDataUnit();
@@ -50,20 +49,20 @@ public class DVClipDecorations extends ClipDisplayDecorations {
 		DVAnnotationWrapper anHand = dvControl.getDvProcess().getAnnotationHandler();
 		
 		ClipDisplayMarker marker = this.getClipDisplayUnit().getClipDisplayPanel().getClipDisplayMarker();
-		// work ou twhich units are highlighted 
+		// work out which units are highlighted 
 		ClipDisplayPanel clipPanel = this.getClipDisplayUnit().getClipDisplayPanel();
 		ArrayList<ClipDisplayUnit> highlighted = clipPanel.getHighlightedUnits();
-		if (highlighted.size() > 1) {
-		PamDataUnit[] units = new PamDataUnit[highlighted.size()];
-		for (int i = 0; i < units.length; i++) {
-			units[i] = highlighted.get(i).getTriggerDataUnit();
-		}
-		List<JMenuItem> manyMenu = anHand.getAnnotationMenuItems(null, null, units);
-		if (manyMenu != null) {
-			for (int i = 0; i < manyMenu.size(); i++) {
-				menu.add(manyMenu.get(i));
+		if (highlighted.size() > 0) {
+			PamDataUnit[] units = new PamDataUnit[highlighted.size()];
+			for (int i = 0; i < units.length; i++) {
+				units[i] = highlighted.get(i).getTriggerDataUnit();
 			}
-		}
+			List<JMenuItem> manyMenu = anHand.getAnnotationMenuItems(null, null, units);
+			if (manyMenu != null) {
+				for (int i = 0; i < manyMenu.size(); i++) {
+					menu.add(manyMenu.get(i));
+				}
+			}
 		}
 		else {
 			if (anHand != null && trigData != null) {

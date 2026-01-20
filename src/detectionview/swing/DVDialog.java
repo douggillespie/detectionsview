@@ -82,7 +82,7 @@ public class DVDialog extends PamDialog {
 
 		c.gridx = 0;
 		c.gridy++;
-		winPanel.add(new JLabel("Post sample ", JLabel.RIGHT), c);
+		winPanel.add(new JLabel("Maximum length ", JLabel.RIGHT), c);
 		c.gridx++;
 		winPanel.add(maxLength = new JTextField(4), c);
 		c.gridx++;
