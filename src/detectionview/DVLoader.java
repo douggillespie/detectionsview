@@ -127,7 +127,10 @@ public class DVLoader {
 	 */
 	private DVDataUnit createDataClip(PamDataUnit aData) {
 		DVParameters params = dvControl.getDvParameters();
-		PamRawDataBlock raw = dvProcess.getRawSourceDataBlock();
+		PamRawDataBlock raw = dvProcess.getInputRawData();
+//		if (aData.getClass().getName().contains("Gibbon") == false ) {
+//			System.out.println(aData.getClass().getName());
+//		}
 		if (raw == null) {
 			return null;
 		}
@@ -158,8 +161,12 @@ public class DVLoader {
 		catch (RawDataUnavailableException e) {
 			System.out.println(e.getMessage());
 		}
-		long startSamp = aData.getStartSample() - (long) (params.preSeconds/fs);
-		long nSamp = (long) ((t2-t1) * fs / 1000);
+		Long startS = aData.getStartSample();
+		long startSamp = 0, nSamp = 0;
+		if (startS != null) {
+			startSamp = startS - (long) (params.preSeconds/fs);
+		}
+		nSamp = (long) ((t2-t1) * fs / 1000);
 		if (rawData != null && rawData[0] != null) {
 			nSamp = rawData[0].length;
 		}
@@ -169,7 +176,7 @@ public class DVLoader {
 		super(timeMilliseconds, triggerMilliseconds, startSample, durationSamples, channelMap, fileName, triggerName,
 				rawData, sourceSampleRate);
 		 */
-		DVDataUnit dvDataUnit = new DVDataUnit(t1, aData.getTimeMilliseconds(), startSamp, (int) nSamp, aData.getChannelBitmap(), null, aData.getParentDataBlock().getDataName(), rawData, fs);
+		DVDataUnit dvDataUnit = new DVDataUnit(dvProcess, t1, aData.getTimeMilliseconds(), startSamp, (int) nSamp, aData.getChannelBitmap(), null, aData.getParentDataBlock().getDataName(), rawData, fs);
 		dvProcess.getDvDataBlock().addPamData(dvDataUnit);
 		return dvDataUnit;
 	}
