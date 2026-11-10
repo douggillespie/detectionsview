@@ -40,12 +40,12 @@ public class DVPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.0";
+		return "1.2";
 	}
 
 	@Override
 	public String getPamVerDevelopedOn() {
-		return "2.2.18";
+		return "2.3.0";
 	}
 
 	@Override
